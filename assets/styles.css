@@ -1,0 +1,28 @@
+/* Minimal tweaks di atas Bootstrap */
+body {
+  background: #f7f7f9;
+}
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+.card {
+  border-radius: 1rem;
+}
+.img-thumb {
+  object-fit: cover;
+  width: 100%;
+  height: 160px;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+.badge-rack {
+  font-size: .75rem;
+}
+.footer {
+  font-size: .9rem;
+  color: #888;
+}
+.table thead th {
+  white-space: nowrap;
+}
