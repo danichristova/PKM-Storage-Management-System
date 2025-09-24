@@ -34,8 +34,8 @@
           <?php if (isset($_SESSION['admin'])): ?>
             <li class="nav-item"><a class="nav-link" href="<?php echo h(BASE_URL . 'settings.php'); ?>">Settings</a></li>
           <?php endif; ?>
-          <?php if (isset($_SESSION['admin'])): ?>
-            <li class="nav-item"><a class="nav-link" href="<?php echo h(BASE_URL . 'pin.php'); ?>">PIN Panel</a></li>
+          <?php if (isset($_SESSION['admin'])&& $_SESSION['role'] === 'superadmin'): ?>
+            <li class="nav-item"><a class="nav-link" href="<?php echo h(BASE_URL . 'super_admin.php'); ?>">SuperAdmin</a></li>
           <?php endif; ?>
         </ul>
       </div>

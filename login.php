@@ -3,20 +3,30 @@ include "config.php";
 
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $username = $_POST['username'];
-  $password = $_POST['password'];
+  $username = $_POST['username'] ?? '';
+  $password = $_POST['password'] ?? '';
 
-  if (
-    ($username === "pkm2025" && $password === "pkm2025") ||
-    ($username === "admin" && $password === "admin")
-  ) {
+  // Tentukan role berdasarkan kombinasi username/password
+  $role = null;
+  if ($username === "pkm2025" && $password === "pkm2025") {
+    $role = "admin";
+  } elseif ($username === "admin" && $password === "admin") {
+    $role = "admin"; // contoh tambahan
+  } elseif ($username === "superadmin" && $password === "superadmin") {
+    $role = "superadmin";
+  }
+
+  if ($role !== null) {
+    // Amankan session
+    session_regenerate_id(true);
     $_SESSION['admin'] = true;
-    $_SESSION['admin_user'] = $username; // simpan nama admin
+    $_SESSION['admin_user'] = $username;
+    $_SESSION['role'] = $role; // <- simpan role di session
 
-    // log admin login
+    // catat log login (menggunakan koneksi mysqli $conn)
     $stmt = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
     $action = "Login";
-    $details = "Berhasil login";
+    $details = "Berhasil login sebagai $role";
     $stmt->bind_param("sss", $username, $action, $details);
     $stmt->execute();
     $stmt->close();
@@ -28,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 }
 ?>
+
 
 
 <!DOCTYPE html>

@@ -42,6 +42,15 @@ CREATE TABLE admin_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE admins (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,      -- simpan hash di sini
+  role ENUM('admin','superadmin') NOT NULL DEFAULT 'admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 
 -- Indeks bantu
 CREATE INDEX idx_items_name ON items(name);

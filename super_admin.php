@@ -2,6 +2,11 @@
 require_once __DIR__ . '/db.php';
 $pdo = db();
 
+if (empty($_SESSION['admin']&& $_SESSION['role'] === 'superadmin')) {
+  header('Location: login.php');
+  exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pin = trim($_POST['pin_code'] ?? '');
     $desc = trim($_POST['description'] ?? '');
@@ -9,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("INSERT INTO pins (pin_code, description) VALUES (?, ?)");
         $stmt->execute([$pin, $desc]);
     }
-    header('Location: pin.php');
+    header('Location: super_admin.php');
     exit;
 }
 
