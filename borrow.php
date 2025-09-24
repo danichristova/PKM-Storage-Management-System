@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $item_id = (int) ($_POST['item_id'] ?? 0);
   $actor = trim($_POST['actor'] ?? '');
   $qty = max(0, (int) ($_POST['qty'] ?? 0));
-  $pin     = trim($_POST['pin'] ?? '');
+  $pin = trim($_POST['pin'] ?? '');
 
   $pdo = db();
 
@@ -80,12 +80,69 @@ include __DIR__ . '/partials/header.php';
     <label class="form-label">Nama Peminjam</label>
     <input type="text" name="actor" class="form-control" required>
   </div>
-  <div class="col-md-6">
-    <label class="form-label">PIN Verifikasi</label>
-    <input type="password" name="pin" class="form-control" required>
-  </div>
   <div class="col-12 d-grid">
-    <button class="btn btn-primary">Catat Peminjaman</button>
+    <button type="button" class="btn btn-primary" onclick="showPinModal()">Catat Peminjaman</button>
+
+    <div class="modal fade" id="pinModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="post">
+            <div class="modal-header">
+              <h5 class="modal-title">Konfirmasi Peminjaman</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Hidden untuk submit -->
+              <input type="hidden" name="item_id" id="itemField">
+              <input type="hidden" name="actor" id="actorField">
+              <input type="hidden" name="qty" id="qtyField">
+
+              <p><b>Barang:</b> <span id="itemPreview"></span></p>
+              <p><b>Jumlah:</b> <span id="qtyPreview"></span></p>
+              <p><b>Peminjam:</b> <span id="actorPreview"></span></p>
+
+              <label>PIN Verifikasi</label>
+              <input type="password" name="pin" class="form-control" required>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Konfirmasi</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+      function showPinModal() {
+        let itemSelect = document.querySelector('select[name="item_id"]');
+        let itemName = itemSelect.options[itemSelect.selectedIndex].text;
+        let itemId = itemSelect.value;
+        let qty = document.querySelector('input[name="qty"]').value;
+        let actor = document.querySelector('input[name="actor"]').value;
+
+        if (!itemId || !qty || !actor) {
+          alert("Mohon isi semua data dulu!");
+          return;
+        }
+
+        // Isi hidden field untuk submit
+        document.getElementById('itemField').value = itemId;
+        document.getElementById('qtyField').value = qty;
+        document.getElementById('actorField').value = actor;
+
+        // Isi preview
+        document.getElementById('itemPreview').textContent = itemName;
+        document.getElementById('qtyPreview').textContent = qty;
+        document.getElementById('actorPreview').textContent = actor;
+
+        // Show modal
+        var modal = new bootstrap.Modal(document.getElementById('pinModal'));
+        modal.show();
+      }
+    </script>
+
+
   </div>
 </form>
 <?php include __DIR__ . '/partials/footer.php'; ?>
