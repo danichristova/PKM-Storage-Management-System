@@ -6,30 +6,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $username = $_POST['username'] ?? '';
   $password = $_POST['password'] ?? '';
 
-  // Tentukan role berdasarkan kombinasi username/password
-  $role = null;
-  if ($username === "pkm2025" && $password === "pkm2025") {
-    $role = "admin";
-  } elseif ($username === "admin" && $password === "admin") {
-    $role = "admin"; // contoh tambahan
-  } elseif ($username === "superadmin" && $password === "superadmin") {
-    $role = "superadmin";
-  }
+  $stmt = $conn->prepare("SELECT * FROM admins WHERE username = ?");
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
 
-  if ($role !== null) {
+  if ($user && password_verify($password, $user['password'])) {
     // Amankan session
     session_regenerate_id(true);
     $_SESSION['admin'] = true;
-    $_SESSION['admin_user'] = $username;
-    $_SESSION['role'] = $role; // <- simpan role di session
+    $_SESSION['admin_user'] = $user['username'];
+    $_SESSION['role'] = $user['role']; // admin / superadmin
 
-    // catat log login (menggunakan koneksi mysqli $conn)
-    $stmt = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
+    // log login
+    $stmtLog = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
     $action = "Login";
-    $details = "Berhasil login sebagai $role";
-    $stmt->bind_param("sss", $username, $action, $details);
-    $stmt->execute();
-    $stmt->close();
+    $details = "Berhasil login sebagai {$user['role']}";
+    $stmtLog->bind_param("sss", $user['username'], $action, $details);
+    $stmtLog->execute();
+    $stmtLog->close();
 
     header("Location: index.php");
     exit();
@@ -38,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 }
 ?>
+
 
 
 
