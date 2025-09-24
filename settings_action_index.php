@@ -10,101 +10,9 @@ if (empty($_SESSION['admin'])) {
 $db = db();
 
 // helper small
-function redirect_back($to = 'settings.php')
+function redirect_back($to = 'index.php')
 {
     header("Location: $to");
-    exit;
-}
-
-// Tambah rak
-if (isset($_POST['add_rack'])) {
-    $name = trim($_POST['rack_name'] ?? '');
-    if ($name !== '') {
-        $stmt = $db->prepare("INSERT INTO racks (name) VALUES (?)");
-        $stmt->execute([$name]);
-
-        $newRackId = $db->lastInsertId();
-
-        // catat log admin
-        $stmt = $db->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
-        $stmt->execute([
-            $_SESSION['admin_user'],
-            "Tambah Rak",
-            "Tambah Rak ID=$newRackId, Nama=$name"
-        ]);
-
-    }
-    redirect_back();
-}
-
-// Update rak
-if (isset($_POST['update_rack'])) {
-    $rackId = (int) $_POST['rack_id'];
-    $name = trim($_POST['rack_name']);
-
-    $db = db();
-
-    try {
-        $db->beginTransaction();
-
-        // catat log admin
-        $stmt = $db->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
-        $stmt->execute([
-            $_SESSION['admin_user'],
-            "Edit Rak",
-            "Edit Rak ID=$rackId, Nama=$name"
-        ]);
-
-        $stmt = $db->prepare("UPDATE racks SET name = ? WHERE id = ?");
-        $stmt->execute([$name, $rackId]);
-
-        $db->commit();
-    } catch (Exception $e) {
-        $db->rollBack();
-        die("Gagal update rak: " . $e->getMessage());
-    }
-
-    header("Location: settings.php");
-    exit;
-}
-
-// Hapus rak -> set items.rack = NULL dulu
-if (isset($_GET['delete_rack'])) {
-    $id = (int) $_GET['delete_rack'];
-    $db = db();
-
-    try {
-        $db->beginTransaction();
-
-        // ambil nama rak dulu
-        $stmt = $db->prepare("SELECT name FROM racks WHERE id = ?");
-        $stmt->execute([$id]);
-        $rack = $stmt->fetch(PDO::FETCH_ASSOC);
-        $rackName = $rack ? $rack['name'] : '(tidak diketahui)';
-
-        // Set semua item yang pakai rak ini jadi NULL
-        $stmt = $db->prepare("UPDATE items SET rack = NULL WHERE rack = ?");
-        $stmt->execute([$id]);
-
-        // Hapus rak
-        $stmt = $db->prepare("DELETE FROM racks WHERE id = ?");
-        $stmt->execute([$id]);
-
-        // catat log admin
-        $stmt = $db->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
-        $stmt->execute([
-            $_SESSION['admin_user'],
-            "Hapus Rak",
-            "Hapus Rak ID=$id, Nama=$rackName"
-        ]);
-
-        $db->commit();
-    } catch (Exception $e) {
-        $db->rollBack();
-        die("Gagal hapus rak: " . $e->getMessage());
-    }
-
-    header("Location: settings.php");
     exit;
 }
 
@@ -131,7 +39,6 @@ if (isset($_GET['delete_item'])) {
     }
     redirect_back();
 }
-
 // Update item (dipanggil dari settings_edit_item.php)
 if (isset($_POST['update_item'])) {
     $id = (int) ($_POST['item_id'] ?? 0);

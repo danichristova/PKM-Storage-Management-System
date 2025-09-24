@@ -27,6 +27,22 @@ CREATE TABLE IF NOT EXISTS racks (
   name VARCHAR(255) NOT NULL,
 );
 
+CREATE TABLE pins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pin_code VARCHAR(20) NOT NULL,
+    description VARCHAR(100) DEFAULT NULL, -- opsional, biar tahu PIN untuk siapa
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE admin_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_username VARCHAR(100) NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- Indeks bantu
 CREATE INDEX idx_items_name ON items(name);
 CREATE INDEX idx_items_rack ON items(rack);

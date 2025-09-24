@@ -1,15 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
 
+
 $search = trim($_GET['q'] ?? '');
 $rack = $_GET['rack'] ?? 'all';
-
-$racks = db()->query("SELECT * FROM racks ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
-$validRackIds = array_column($racks, 'id');
-if ($rack !== 'all' && in_array($rack, $validRackIds)) {
-    $sql .= " AND i.rack = :rack";
-    $params[':rack'] = $rack;
-}
 
 $sql = "SELECT i.*, r.name AS rack_name
         FROM items i
@@ -17,8 +11,19 @@ $sql = "SELECT i.*, r.name AS rack_name
         WHERE 1";
 $params = [];
 
+
+$racks = db()->query("SELECT * FROM racks ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$validRackIds = array_column($racks, 'id');
+
+if ($rack !== 'all' && in_array($rack, $validRackIds)) {
+    $sql .= " AND i.rack = :rack";
+    $params[':rack'] = $rack;
+}
+
+
+
 if ($search !== '') {
-  $sql .= " AND name LIKE :q";
+  $sql .= " AND i.name LIKE :q";
   $params[':q'] = '%' . $search . '%';
 }
 if (in_array($rack, ['1', '2', '3'])) {

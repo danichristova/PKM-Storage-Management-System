@@ -3,18 +3,32 @@ include "config.php";
 
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+  $username = $_POST['username'];
+  $password = $_POST['password'];
 
-    if ($username === "pkm2025" && $password === "pkm2025" || $password === "admin" && $username === "admin") {
-        $_SESSION['admin'] = true;
-        header("Location: index.php");
-        exit();
-    } else {
-        $error = "Username atau Password salah!";
-    }
+  if (
+    ($username === "pkm2025" && $password === "pkm2025") ||
+    ($username === "admin" && $password === "admin")
+  ) {
+    $_SESSION['admin'] = true;
+    $_SESSION['admin_user'] = $username; // simpan nama admin
+
+    // log admin login
+    $stmt = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
+    $action = "Login";
+    $details = "Berhasil login";
+    $stmt->bind_param("sss", $username, $action, $details);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: index.php");
+    exit();
+  } else {
+    $error = "Username atau Password salah!";
+  }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
@@ -165,19 +179,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     @media (max-width: 576px) {
-  .login-container {
-    max-width: 95%;   /* hampir penuh layar */
-    padding: 25px 20px; /* tetap ada jarak biar rapi */
-  }
-  .login-container h2 {
-    font-size: 24px; /* judul tetap besar di HP */
-  }
-  .login-container input,
-  .login-container button {
-    font-size: 16px; /* tombol/input nyaman ditekan */
-  }
-}
+      .login-container {
+        max-width: 95%;
+        /* hampir penuh layar */
+        padding: 25px 20px;
+        /* tetap ada jarak biar rapi */
+      }
 
+      .login-container h2 {
+        font-size: 24px;
+        /* judul tetap besar di HP */
+      }
+
+      .login-container input,
+      .login-container button {
+        font-size: 16px;
+        /* tombol/input nyaman ditekan */
+      }
+    }
   </style>
 
 </head>
@@ -189,7 +208,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h2>Admin PKM</h2>
 
     <form method="post">
-      <?php if ($error) echo "<div class='alert alert-danger'>$error</div>"; ?>
+      <?php if ($error)
+        echo "<div class='alert alert-danger'>$error</div>"; ?>
 
       <input type="text" name="username" placeholder="Username" class="form-control" required>
 

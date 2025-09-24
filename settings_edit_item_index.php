@@ -10,7 +10,7 @@ if (empty($_SESSION['admin'])) {
 $db = db();
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
-    header('Location: settings.php'); exit;
+    header('Location: index.php'); exit;
 }
 
 // ambil item
@@ -18,7 +18,7 @@ $stmt = $db->prepare("SELECT * FROM items WHERE id = ?");
 $stmt->execute([$id]);
 $item = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$item) {
-    header('Location: settings.php'); exit;
+    header('Location: index.php'); exit;
 }
 
 // ambil rak utk dropdown
@@ -35,7 +35,7 @@ include __DIR__ . '/partials/header.php';
   <h4>Edit Barang</h4>
   <div class="card mt-3">
     <div class="card-body">
-      <form method="post" action="settings_action.php" enctype="multipart/form-data">
+      <form method="post" action="settings_action_index.php" enctype="multipart/form-data">
         <input type="hidden" name="update_item" value="1">
         <input type="hidden" name="item_id" value="<?php echo (int)$item['id']; ?>">
 
