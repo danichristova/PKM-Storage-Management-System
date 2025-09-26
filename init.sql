@@ -57,6 +57,8 @@ CREATE TABLE settings (
   value TEXT
 );
 
+INSERT INTO settings (name, value) VALUES ('notification_email', 'default@gmail.com');
+
 
 
 -- Indeks bantu

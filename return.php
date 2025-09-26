@@ -61,7 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p><strong>Waktu:</strong> " . date('d-m-Y H:i:s') . "</p>
     ";
 
-    sendEmail("danichristova02@gmail.com", $subject, $body);
+    // Ambil email dari tabel settings
+    $stmt = $pdo->prepare("SELECT value FROM settings WHERE name = 'notification_email' LIMIT 1");
+    $stmt->execute();
+    $notifEmail = $stmt->fetchColumn() ?: 'danichristova02@gmail.com';
+
+    // Kirim email ke alamat yang diatur
+    sendEmail($notifEmail, $subject, $body);
 
     $pdo->commit();
     flash('success', 'Pengembalian dicatat dan stok ditambah.');
