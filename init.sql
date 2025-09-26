@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS logs (
   action ENUM('input','borrow','return','take') NOT NULL,
   actor VARCHAR(100) NOT NULL, -- nama penginput / peminjam / pengambil / pengembali
   qty INT NOT NULL,
+  verified_by VARCHAR(100),
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -48,6 +49,12 @@ CREATE TABLE admins (
   password VARCHAR(255) NOT NULL,      -- simpan hash di sini
   role ENUM('admin','superadmin') NOT NULL DEFAULT 'admin',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE settings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) UNIQUE,
+  value TEXT
 );
 
 

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/mailer.php';
 
 $item_id = (int) ($_GET['item_id'] ?? 0);
 
@@ -12,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $pdo = db();
 
   // CEK PIN DI DB
-  $stmt = $pdo->prepare("SELECT id FROM pins WHERE pin_code = ?");
+  $stmt = $pdo->prepare("SELECT id, description FROM pins WHERE pin_code = ?");
   $stmt->execute([$pin]);
   $valid_pin = $stmt->fetch();
+  $verified_by = $valid_pin['description'] ?? 'Unknown';
+
 
   if (!$valid_pin) {
     flash('error', 'PIN tidak valid!');
@@ -25,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $pdo = db();
   $pdo->beginTransaction();
   try {
-    $stmt = $pdo->prepare("SELECT qty FROM items WHERE id = ? FOR UPDATE");
+    $stmt = $pdo->prepare("SELECT qty, name FROM items WHERE id = ? FOR UPDATE");
     $stmt->execute([$item_id]);
     $item = $stmt->fetch();
     if (!$item) {
@@ -40,8 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt2->execute([$qty, $item_id]);
 
     // Catat log
-    $stmt3 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty) VALUES (?,?,?,?)");
-    $stmt3->execute([$item_id, 'borrow', $actor, $qty]);
+    $stmt3 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty, verified_by) VALUES (?,?,?,?,?)");
+    $stmt3->execute([$item_id, 'borrow', $actor, $qty, $verified_by]);
+
+
+    // Kirim email notifikasi
+    $subject = "Notifikasi Peminjaman";
+    $body = "
+    <h3>Ada peminjaman baru!</h3>
+    <p><strong>Nama Peminjam:</strong> {$actor}</p>
+    <p><strong>Barang:</strong> {$item['name']}</p>
+    <p><strong>Jumlah:</strong> {$qty}</p>
+    <p><strong>Waktu:</strong> " . date('d-m-Y H:i:s') . "</p>
+    ";
+
+    // Ambil email dari tabel settings
+    $stmt = $pdo->prepare("SELECT value FROM settings WHERE name = 'notification_email' LIMIT 1");
+    $stmt->execute();
+    $notifEmail = $stmt->fetchColumn() ?: 'danichristova02@gmail.com';
+
+    // Kirim email ke alamat yang diatur
+    sendEmail($notifEmail, $subject, $body);
 
     $pdo->commit();
     flash('success', 'Peminjaman dicatat dan stok dikurangi.');

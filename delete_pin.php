@@ -9,5 +9,5 @@ if ($id > 0) {
 }
 
 // balik ke halaman pengaturan PIN
-header('Location: pin.php');
+header('Location: super_admin.php');
 exit;

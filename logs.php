@@ -60,6 +60,7 @@ include __DIR__ . '/partials/header.php';
               <th>Barang</th>
               <th>Nama Penginput</th>
               <th>Jumlah</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -69,6 +70,7 @@ include __DIR__ . '/partials/header.php';
                 <td><?php echo h($r['item_name']); ?></td>
                 <td><?php echo h($r['actor']); ?></td>
                 <td><?php echo (int) $r['qty']; ?></td>
+                
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -90,6 +92,7 @@ include __DIR__ . '/partials/header.php';
               <th>Barang</th>
               <th>Nama</th>
               <th>Jumlah</th>
+              <th>Acc</th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +109,7 @@ include __DIR__ . '/partials/header.php';
                 <td><?php echo h($r['item_name']); ?></td>
                 <td><?php echo h($r['actor']); ?></td>
                 <td><?php echo (int) $r['qty']; ?></td>
+                <td><?php echo h( $r['verified_by']); ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -126,6 +130,7 @@ include __DIR__ . '/partials/header.php';
               <th>Barang</th>
               <th>Nama Pengambil</th>
               <th>Jumlah</th>
+              <th>Acc</th>
             </tr>
           </thead>
           <tbody>
@@ -135,6 +140,7 @@ include __DIR__ . '/partials/header.php';
                 <td><?php echo h($r['item_name']); ?></td>
                 <td><?php echo h($r['actor']); ?></td>
                 <td><?php echo (int) $r['qty']; ?></td>
+                <td><?php echo h( $r['verified_by']); ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>

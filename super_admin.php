@@ -87,6 +87,26 @@ if (isset($_GET['demote_admin'])) {
   exit;
 }
 
+// Proses update email
+if (isset($_POST['update_email'])) {
+  $newEmail = trim($_POST['notification_email'] ?? '');
+  if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+    $stmt = $pdo->prepare("UPDATE settings SET value=? WHERE name='notification_email'");
+    $stmt->execute([$newEmail]);
+    flash('success', 'Email notifikasi berhasil diperbarui!');
+  } else {
+    flash('error', 'Format email tidak valid!');
+  }
+  header("Location: super_admin.php");
+  exit;
+}
+
+
+// Ambil email sekarang
+$stmt = $pdo->prepare("SELECT value FROM settings WHERE name='notification_email' LIMIT 1");
+$stmt->execute();
+$currentEmail = $stmt->fetchColumn() ?: '';
+
 $admins = $pdo->query("SELECT * FROM admins ORDER BY created_at DESC")->fetchAll();
 
 
@@ -108,7 +128,7 @@ include __DIR__ . '/partials/header.php';
           <input type="text" name="pin_code" class="form-control" placeholder="PIN baru" required>
         </div>
         <div class="col-md-5">
-          <input type="text" name="description" class="form-control" placeholder="Keterangan (opsional)">
+          <input type="text" name="description" class="form-control" placeholder="Pemilik PIN" required>
         </div>
         <div class="col-md-3 d-grid">
           <button type="submit" class="btn btn-primary">Tambah PIN</button>
@@ -126,7 +146,7 @@ include __DIR__ . '/partials/header.php';
             <tr>
               <th>ID</th>
               <th>PIN</th>
-              <th>Keterangan</th>
+              <th>Pemilik</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -233,6 +253,21 @@ include __DIR__ . '/partials/header.php';
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-4">
+  <h1 class="h4 mb-4">Pengaturan Email Notifikasi</h1>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="post" class="row g-3">
+        <input type="hidden" name="update_email" value="1">
+        <div class="col-md-12">
+          <p class="form-control-plaintext"><?= h($currentEmail) ?></p>
+        </div>
+      </form>
     </div>
   </div>
 </div>
