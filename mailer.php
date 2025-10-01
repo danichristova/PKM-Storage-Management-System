@@ -22,7 +22,7 @@ function sendEmail($to, $subject, $body) {
         $mail->Port       = 587;
 
         // Dari
-        $mail->setFrom('jozdanar@gmail.com', 'Notifikasi Sistem');
+        $mail->setFrom('jozdanar@gmail.com', 'PKM Storage');
         $mail->addAddress($to);
 
         // Konten

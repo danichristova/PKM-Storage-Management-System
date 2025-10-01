@@ -12,15 +12,50 @@ if (empty($_SESSION['admin']) || $_SESSION['role'] !== 'superadmin') {
 if (isset($_POST['new_admin'])) {
   $newUser = trim($_POST['username']);
   $newPass = trim($_POST['password']);
+
   if ($newUser && $newPass) {
+    // Cek apakah username sudah ada
+    $check = $pdo->prepare("SELECT COUNT(*) FROM admins WHERE username = ?");
+    $check->execute([$newUser]);
+    $exists = $check->fetchColumn();
+
+    if ($exists > 0) {
+      flash('error', 'Username sudah digunakan, silakan pilih yang lain.');
+      header("Location: super_admin.php");
+      exit;
+    }
+
+    // Kalau belum ada, baru insert
     $hash = password_hash($newPass, PASSWORD_DEFAULT);
     $stmt = $pdo->prepare("INSERT INTO admins (username, password, role) VALUES (?, ?, 'admin')");
     $stmt->execute([$newUser, $hash]);
+
+    flash('success', 'Admin baru berhasil ditambahkan.');
+  }
+
+  header("Location: super_admin.php");
+  exit;
+} // Proses update email
+elseif (isset($_POST['update_email'])) {
+  $newEmail = trim($_POST['notification_email'] ?? '');
+  if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+    $stmt = $pdo->prepare("
+            INSERT INTO settings (name, value) 
+            VALUES ('notification_email', ?)
+            ON DUPLICATE KEY UPDATE value = VALUES(value)
+        ");
+    $stmt->execute([$newEmail]);
+
+    flash('success', 'Email notifikasi berhasil diperbarui!');
+  } else {
+    flash('error', 'Format email tidak valid!');
   }
   header("Location: super_admin.php");
   exit;
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $pin = trim($_POST['pin_code'] ?? '');
+}
+// Tambah PIN
+elseif (isset($_POST['pin_code'])) {
+  $pin = trim($_POST['pin_code']);
   $desc = trim($_POST['description'] ?? '');
   if ($pin !== '') {
     $stmt = $pdo->prepare("INSERT INTO pins (pin_code, description) VALUES (?, ?)");
@@ -87,25 +122,15 @@ if (isset($_GET['demote_admin'])) {
   exit;
 }
 
-// Proses update email
-if (isset($_POST['update_email'])) {
-  $newEmail = trim($_POST['notification_email'] ?? '');
-  if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-    $stmt = $pdo->prepare("UPDATE settings SET value=? WHERE name='notification_email'");
-    $stmt->execute([$newEmail]);
-    flash('success', 'Email notifikasi berhasil diperbarui!');
-  } else {
-    flash('error', 'Format email tidak valid!');
-  }
-  header("Location: super_admin.php");
-  exit;
-}
+
 
 
 // Ambil email sekarang
 $stmt = $pdo->prepare("SELECT value FROM settings WHERE name='notification_email' LIMIT 1");
 $stmt->execute();
 $currentEmail = $stmt->fetchColumn() ?: '';
+
+
 
 $admins = $pdo->query("SELECT * FROM admins ORDER BY created_at DESC")->fetchAll();
 
@@ -177,8 +202,17 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
+
 <div class="container my-4">
   <h1 class="h4 mb-4">Kelola Admin</h1>
+
+  <?php if (!empty($_SESSION['flash'])): ?>
+    <div class="alert alert-<?= $_SESSION['flash']['type'] ?> alert-dismissible fade show" role="alert">
+      <?= $_SESSION['flash']['message'] ?>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['flash']); ?>
+  <?php endif; ?>
 
   <!-- Form Tambah Admin -->
   <div class="card mb-4">
@@ -260,17 +294,47 @@ include __DIR__ . '/partials/header.php';
 <div class="container my-4">
   <h1 class="h4 mb-4">Pengaturan Email Notifikasi</h1>
 
+  <?php if (!empty($_SESSION['flash'])): ?>
+    <div class="alert alert-<?= $_SESSION['flash']['type'] ?> alert-dismissible fade show" role="alert">
+      <?= $_SESSION['flash']['message'] ?>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['flash']); ?>
+  <?php endif; ?>
+
   <div class="card mb-4">
-    <div class="card-body">
-      <form method="post" class="row g-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <p class="mb-0"><?= h($currentEmail) ?></p>
+      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editEmailModal">
+        <i class="bi bi-pencil"></i> Edit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Email -->
+<div class="modal fade" id="editEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post">
         <input type="hidden" name="update_email" value="1">
-        <div class="col-md-12">
-          <p class="form-control-plaintext"><?= h($currentEmail) ?></p>
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Email Notifikasi</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="email" name="notification_email" class="form-control" value="<?= h($currentEmail) ?>" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+
 
 
 <?php include __DIR__ . '/partials/footer.php';
