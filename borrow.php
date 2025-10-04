@@ -42,9 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt2 = $pdo->prepare("UPDATE items SET qty = qty - ? WHERE id = ?");
     $stmt2->execute([$qty, $item_id]);
 
-    // Catat log
-    $stmt3 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty, verified_by) VALUES (?,?,?,?,?)");
-    $stmt3->execute([$item_id, 'borrow', $actor, $qty, $verified_by]);
+    // Ambil waktu dari PHP
+    $now = date('Y-m-d H:i:s');
+
+    // Catat log dengan waktu manual
+    $stmt3 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty, verified_by, created_at) 
+                        VALUES (?,?,?,?,?,?)");
+    $stmt3->execute([$item_id, 'borrow', $actor, $qty, $verified_by, $now]);
 
 
     // Kirim email notifikasi
@@ -55,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p><strong>Barang:</strong> {$item['name']}</p>
     <p><strong>Jumlah:</strong> {$qty}</p>
     <p><strong>Waktu:</strong> " . date('d-m-Y H:i:s') . "</p>
+    <p><strong>Acc:</strong> {$verified_by}</p>
     ";
 
     // Ambil email dari tabel settings

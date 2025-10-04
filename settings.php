@@ -12,7 +12,7 @@ if (empty($_SESSION['admin'])) {
 
 $db = db();
 
-// fallback helper h() jika belum ada
+// fallback helper h()
 if (!function_exists('h')) {
     function h($s) { return htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8'); }
 }

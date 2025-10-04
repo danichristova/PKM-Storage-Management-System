@@ -1,7 +1,24 @@
 <?php
+
+$session_lifetime = 1800; // 30 menit
+
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', $session_lifetime);
+    session_set_cookie_params(0); // cookie habis kalau browser ditutup
     session_start();
 }
+
+// Auto logout kalau sudah login & idle > 30 menit
+if (isset($_SESSION['admin'])) { // cek kalau user sudah login
+    if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $session_lifetime)) {
+        session_unset();     // hapus semua session
+        session_destroy();   // destroy session
+        header("Location: login.php?timeout=1");
+        exit;
+    }
+    $_SESSION['LAST_ACTIVITY'] = time();
+}
+
 
 // Konfigurasi database
 define('DB_HOST', 'localhost');

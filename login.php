@@ -2,6 +2,13 @@
 include "config.php";
 
 $error = "";
+$message = "";
+
+// Cek apakah user baru saja logout otomatis
+if (isset($_GET['timeout']) && $_GET['timeout'] == 1) {
+    $message = "Sesi login Anda sudah berakhir.";
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $username = $_POST['username'] ?? '';
   $password = $_POST['password'] ?? '';
@@ -20,10 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['role'] = $user['role']; // admin / superadmin
 
     // log login
-    $stmtLog = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details) VALUES (?, ?, ?)");
+    $now = date('Y-m-d H:i:s'); // waktu realtime dari PHP
+    $stmtLog = $conn->prepare("INSERT INTO admin_logs (admin_username, action, details, created_at) 
+                           VALUES (?, ?, ?, ?)");
     $action = "Login";
     $details = "Berhasil login sebagai {$user['role']}";
-    $stmtLog->bind_param("sss", $user['username'], $action, $details);
+    $stmtLog->bind_param("ssss", $user['username'], $action, $details, $now);
     $stmtLog->execute();
     $stmtLog->close();
 
@@ -31,212 +40,111 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
   } else {
     $error = "Username atau Password salah!";
+    $message = "";
   }
 }
 ?>
 
 
 
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Login Admin</title>
-  <link rel="stylesheet" href="assets/bootstrap.min.css">
-  <style>
-    body {
-
-      margin: 0;
-
-      padding: 0;
-
-      font-family: 'Poppins', sans-serif;
-
-      height: 100vh;
-
-      display: flex;
-
-      justify-content: center;
-
-      align-items: center;
-
-      background: url('https://images.pexels.com/photos/1525041/pexels-photo-1525041.jpeg?cs=srgb&dl=pexels-francesco-ungaro-1525041.jpg&fm=jpg?blur=5') no-repeat center center/cover;
-
-    }
-
-    .login-container {
-
-      background: rgba(255, 255, 255, 0.15);
-
-      backdrop-filter: blur(12px);
-
-      border-radius: 20px;
-
-      padding: 40px;
-
-      width: 350px;
-
-      text-align: center;
-
-      color: white;
-
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-
-      animation: fadeIn 1.2s ease-in-out;
-
-    }
-
-    .login-container h2 {
-
-      margin-bottom: 20px;
-
-      font-size: 28px;
-
-    }
-
-    .login-container input {
-
-      width: 100%;
-
-      padding: 12px;
-
-      margin: 12px 0;
-
-      border: none;
-
-      border-radius: 10px;
-
-      outline: none;
-
-      font-size: 16px;
-
-    }
-
-    .login-container input[type="text"],
-
-    .login-container input[type="password"] {
-
-      max-width: 90%;
-
-      background: rgba(255, 255, 255, 0.8);
-
-    }
-
-    .login-container button {
-
-      width: 100%;
-
-      padding: 12px;
-
-      border: none;
-
-      border-radius: 10px;
-
-      background: linear-gradient(135deg, #667eea, #764ba2);
-
-      color: white;
-
-      font-size: 18px;
-
-      cursor: pointer;
-
-      margin-top: 15px;
-
-      transition: 0.3s;
-
-    }
-
-    .login-container button:hover {
-
-      background: linear-gradient(135deg, #5563c1, #5c3c8a);
-
-    }
-
-    .extra {
-
-      margin-top: 15px;
-
-      font-size: 14px;
-
-    }
-
-    .extra a {
-
-      color: #fff;
-
-      text-decoration: none;
-
-      font-weight: bold;
-
-    }
-
-    @keyframes fadeIn {
-
-      from {
-        opacity: 0;
-        transform: translateY(-30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-    }
-
-    @media (max-width: 576px) {
-      .login-container {
-        max-width: 95%;
-        /* hampir penuh layar */
-        padding: 25px 20px;
-        /* tetap ada jarak biar rapi */
-      }
-
-      .login-container h2 {
-        font-size: 24px;
-        /* judul tetap besar di HP */
-      }
-
-      .login-container input,
-      .login-container button {
-        font-size: 16px;
-        /* tombol/input nyaman ditekan */
-      }
-    }
-  </style>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: #f5f6fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 15px;
+            background: #fff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-card h3 {
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .toggle-password {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+    </style>
 </head>
 
 <body>
+    <div class="login-card">
+        <h3>Login Admin</h3>
 
-  <div class="login-container">
+        <!-- Alert untuk error / message -->
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <h2>Admin PKM</h2>
+        <?php if (!empty($message)): ?>
+            <div class="alert alert-warning"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
 
-    <form method="post">
-      <?php if ($error)
-        echo "<div class='alert alert-danger'>$error</div>"; ?>
+        <form method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required autofocus>
+            </div>
 
-      <input type="text" name="username" placeholder="Username" class="form-control" required>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-eye" id="togglePassword" style="cursor:pointer;"></i>
+                    </span>
+                </div>
+            </div>
 
-      <input type="password" name="password" placeholder="Password" class="form-control" required>
 
-      <button type="submit">Login</button>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
 
-    </form>
-
-    <div class="extra">
-
-      <a href="index.php">Kembali</a>
-
+        </form>
+        <p class="text-center mt-3">
+            <a href="index.php" class="text-dark">Kembali</a>
+        </p>
     </div>
 
-  </div>
+    <script>
+        const togglePassword = document.getElementById("togglePassword");
+        const passwordInput = document.getElementById("password");
 
+        togglePassword.addEventListener("click", function () {
+            const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+            passwordInput.setAttribute("type", type);
 
+            // toggle icon
+            this.classList.toggle("bi-eye");
+            this.classList.toggle("bi-eye-slash");
+        });
+    </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

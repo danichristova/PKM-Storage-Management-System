@@ -57,9 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("INSERT INTO items (created_by, name, type, rack, qty, photo_path) VALUES (?,?,?,?,?,?)");
     $stmt->execute([$created_by, $name, $type, $rack, $qty, $photo_path]);
 
-    $item_id = $pdo->lastInsertId();
-    $stmt2 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty) VALUES (?,?,?,?)");
-    $stmt2->execute([$item_id, 'input', $created_by, $qty]);
+    // Ambil waktu dari PHP
+    $now = date('Y-m-d H:i:s');
+    // Catat log dengan waktu manual
+    $stmt2 = $pdo->prepare("INSERT INTO logs (item_id, action, actor, qty, created_at) VALUES (?,?,?,?,?)");
+    $stmt2->execute([$item_id, 'input', $created_by, $qty, $now]);
 
     $pdo->commit();
     flash('success', 'Barang berhasil ditambahkan.');
