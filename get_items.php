@@ -7,6 +7,7 @@ $page = (int)($_GET['page'] ?? 1);
 $limit = 12; // jumlah item per load
 $offset = ($page - 1) * $limit;
 
+
 $sql = "SELECT i.*, r.name AS rack_name
         FROM items i
         LEFT JOIN racks r ON i.rack = r.id
