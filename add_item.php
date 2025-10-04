@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
     $stmt = $pdo->prepare("INSERT INTO items (created_by, name, type, rack, qty, photo_path) VALUES (?,?,?,?,?,?)");
     $stmt->execute([$created_by, $name, $type, $rack, $qty, $photo_path]);
+    $item_id = $pdo->lastInsertId();
 
     // Ambil waktu dari PHP
     $now = date('Y-m-d H:i:s');

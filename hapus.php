@@ -1,5 +1,5 @@
 <?php
-include "config.php";   // ini wajib di baris paling atas
+include "config.php"; 
 
 if (!isset($_SESSION['admin'])) {
     die("Akses ditolak!");

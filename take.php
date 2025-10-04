@@ -147,7 +147,6 @@ include __DIR__ . '/partials/header.php';
       </div>
     </div>
 
-
     <script>
       function showPinModal() {
         let itemSelect = document.querySelector('select[name="item_id"]');
