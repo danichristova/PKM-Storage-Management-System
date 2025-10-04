@@ -42,13 +42,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $newname = 'item_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
     $dest = UPLOAD_DIR . $newname;
+
+    // --- Pindahkan file sementara ---
     if (!move_uploaded_file($tmp, $dest)) {
       flash('error', 'Gagal mengunggah file.');
       header('Location: add_item.php');
       exit;
     }
+
+    // --- Kompres gambar setelah diupload ---
+    switch ($ext) {
+      case 'jpg':
+      case 'jpeg':
+        $img = imagecreatefromjpeg($dest);
+        imagejpeg($img, $dest, 60); // quality 0-100 (def. 70)
+        imagedestroy($img);
+        break;
+
+      case 'png':
+        $img = imagecreatefrompng($dest);
+        imagepng($img, $dest, 6); // compression 0-9 (def. 6)
+        imagedestroy($img);
+        break;
+
+      case 'gif':
+        break;
+    }
+
+    // Ambil foto lama dari DB
+    $stmt = $conn->prepare("SELECT photo_path FROM items WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($old_photo);
+    $stmt->fetch();
+    $stmt->close();
+
+    // hapus foto ori
+    if ($old_photo && file_exists(__DIR__ . '/' . $old_photo)) {
+      unlink(__DIR__ . '/' . $old_photo);
+    }
+
+
     $photo_path = UPLOAD_BASE . $newname;
   }
+
 
   // Insert item
   $pdo = db();
@@ -113,7 +150,16 @@ include __DIR__ . '/partials/header.php';
     <input type="file" name="photo" class="form-control" accept=".jpg,.jpeg,.png,.gif">
   </div>
   <div class="col-12 d-grid">
-    <button class="btn btn-primary">Simpan</button>
+    <button class="btn btn-primary" id="confirmBtn">Simpan</button>
   </div>
 </form>
+<script>
+  const confirmBtn = document.getElementById('confirmBtn');
+  confirmBtn.addEventListener('click', function (e) {
+    e.preventDefault(); // cegah submit default dulu
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = "Memproses...";
+    this.form.submit();
+  });
+</script>
 <?php include __DIR__ . '/partials/footer.php'; ?>

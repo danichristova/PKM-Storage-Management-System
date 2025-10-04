@@ -136,7 +136,7 @@ include __DIR__ . '/partials/header.php';
               <input type="password" name="pin" class="form-control" required>
             </div>
             <div class="modal-footer">
-              <button type="submit" class="btn btn-success">Konfirmasi</button>
+              <button type="submit" class="btn btn-success" id="confirmBtn">Konfirmasi</button>
             </div>
           </form>
         </div>
@@ -171,6 +171,15 @@ include __DIR__ . '/partials/header.php';
         var modal = new bootstrap.Modal(document.getElementById('pinModal'));
         modal.show();
       }
+    </script>
+    <script>
+      const confirmBtn = document.getElementById('confirmBtn');
+      confirmBtn.addEventListener('click', function (e) {
+        e.preventDefault(); // cegah submit default dulu
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Memproses...";
+        this.form.submit();
+      });
     </script>
 
 

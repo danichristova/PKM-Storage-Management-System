@@ -105,4 +105,80 @@ include __DIR__ . '/partials/header.php';
   </div>
 <?php endif; ?>
 
+<script>
+let page = 1;
+let loading = false;
+let finished = false;
+
+async function loadItems(reset = false) {
+  if (loading || finished) return;
+  loading = true;
+  document.getElementById("loading").style.display = "block";
+
+  const search = document.getElementById("search").value;
+  const rack = document.getElementById("rack").value;
+
+  const res = await fetch(`get_items.php?page=${page}&q=${encodeURIComponent(search)}&rack=${rack}`);
+  const data = await res.json();
+
+  if (reset) {
+    document.getElementById("items-container").innerHTML = "";
+    page = 1;
+    finished = false;
+  }
+
+  if (data.length === 0) {
+    finished = true;
+    document.getElementById("loading").innerText = "Tidak ada lagi data.";
+  } else {
+    const container = document.getElementById("items-container");
+    data.forEach(it => {
+      container.innerHTML += `
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            ${it.photo_path ? `<img src="${it.photo_path}" class="img-thumb" alt="">` : 
+              `<svg class="img-thumb bg-light"><rect width="100%" height="100%" fill="#e9ecef"/></svg>`}
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <h5 class="card-title m-0">${it.name}</h5>
+                <span class="badge text-bg-secondary badge-rack">${it.rack_name ?? '—'}</span>
+              </div>
+              <p class="text-muted mb-2">${it.type}</p>
+              <p class="mb-2">Stok saat ini: <strong>${it.qty}</strong></p>
+              <div class="mt-auto d-flex gap-2">
+                <a href="borrow.php?item_id=${it.id}" class="btn btn-sm btn-outline-primary">Pinjam</a>
+                <a href="return.php?item_id=${it.id}" class="btn btn-sm btn-outline-success">Kembalikan</a>
+                <a href="take.php?item_id=${it.id}" class="btn btn-sm btn-outline-danger">Ambil</a>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+    page++;
+  }
+
+  document.getElementById("loading").style.display = "none";
+  loading = false;
+}
+
+// trigger saat pertama kali load
+loadItems();
+
+// scroll event
+window.addEventListener("scroll", () => {
+  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+    loadItems();
+  }
+});
+
+// filter submit
+document.getElementById("filter-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  page = 1;
+  finished = false;
+  loadItems(true);
+});
+</script>
+
+
 <?php include __DIR__ . '/partials/footer.php'; ?>
