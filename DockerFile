@@ -1,0 +1,20 @@
+# Gunakan image PHP + Apache
+FROM php:8.2-apache
+
+# Copy semua file project ke dalam container
+COPY . /var/www/html/
+
+# Set working directory
+WORKDIR /var/www/html/
+
+# Install ekstensi PHP umum
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+# Pastikan permission
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port
+EXPOSE 80
+
+# Jalankan Apache
+CMD ["apache2-foreground"]
